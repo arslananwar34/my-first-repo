@@ -1,39 +1,62 @@
-name: Deploy to Nginx
+name: Deploy React App
 
 on:
   push:
     branches:
-      - main
+      - main # or the branch you want to trigger the action on
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v2
 
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '14'
+        node-version: '14' # or the version your project requires
 
     - name: Install dependencies
       run: npm install
 
-    - name: Build the project
+    - name: Build the React app
       run: npm run build
 
-    - name: Copy files via SSH
+    - name: Deploy to server
       env:
-        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        HOST: ${{44.215.70.208}}
+        USERNAME: ${{ec2-user}}
+        SSH_KEY: ${{-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEAmMYq4iFdZrFqQFRqJH6LnEGB7kqbjmx4NKOiDBP31XFJkUDl
+p6toVSI9BYleKATL2DGQWifIh3WoYzRAd2Ziq8UdAQSEsOYJA38mRHWq+69PHimf
++oR2uD491D+B0aIm3Apc9YifL8lThZ+aPTPd/uEP7pWM5izNFS9lqgLB5RoFacWd
+TvnAsMKAUD9CtSkvH+LLT0OtCAfZzo2V3XVWpOmSHlWLZ9jf+kk9m9F7D387dM1V
+WC9ZQrIUULwctKvYvLnJc/ETOQ9YaIpkqCgc2zAmxDdNq8KP2S40+/qzCdb16BHW
+Mco7RfAay88FwT4zkYfruq5jNISIpxywU1ybsQIDAQABAoIBAGWxQ0pSu0FoRzma
+9yxjr7rLQBnGP9WGDl27rlor0ISbbETr1fLN/hztNYFB9xLcXnQCSfw5DxpcD0I5
+vc+8r2F3S98pisnV1ZomQOrBCJeQEjIZswumsP/jLnTh8SABt6wwmcA2uP+uG5KO
+srSameLXHSvLEIcGu1ymuB16yGYe6snnQDRj6j4NbMqTiwikS/OgJcnVIq2AyfMe
+c2PVo2610H3lytFR0nkpq5jg1NP4U2UVdpdq9sUQ0gvaMwJBe1YxOcloBjeXl1mA
+dY6pna4hMaN6f64G5UzH+eIITBMCtF42Itp1BqXIe9Y75f850Hwp0scCimjaObz9
+Xu3mVyECgYEA34N/n34JsnXTmpwXb/0mPZNgemMLYJ35C0d6k3BH/wgaSnempK1L
+BS4klW9LtbhiKBBEz6duUVoNEW9CmsOqzvPza+k0kj+TJAonB9eIE6o8Ze64aYTX
+XaqfkMQUdkUBOYGhtG/Rb1CUZtSQfJrfnj+U5eAGvzeGbvIrn0FWR0MCgYEArvqW
+3j8k7O75uarzufQPZ4a15vPa5SnEflHhoV/WltL6kcIQK6bPLqBpW97kzedBpqHv
+OEszByhOfmq4wFqzlyR7WES6cLu3XRClR/nNXGHUiPyr/QfZMikIkdm2LNWmIr0K
+NFhXt2EbGExcLmI6P497mMrNeKL3+25Kzj8D//sCgYEAt+MZ9n/dPoONyd+tsKcW
+9QXxE/+0dpLBODRgdjikIv/pkWaLJWSlGefylTbxlNnTd56a3jSjoC50HenpZCai
+uo0dsaQ1ajT/u2DW566892DRPBOAiN+PyDH+AT4wj3UKIuOxxB9SsUAcN9Wd4cYR
+P8KTn+QF6P+njFOU6/r3Hr0CgYAfVZCey//4zfK6ZPqwWhxIFb+NVC3my8v8Mv2M
+wHTVHYLxhycOKhj/6In1gbzHgponFOiZ1B2XMoib6tCa4aM3dbkA3Y3lkjgL2mc+
+tGUqHfrJbTX/YeBrMx3twGb3MGtH3UJujUNn+2O2vjXjuINlznP7sJWK/OQbimyq
+8m3s8QKBgG+WRGLWB6HGLck58Sl+QSElHOaXY7cl4CDDuOoAbv0y5k6BsMVboa5O
+WQBzCmsIULUFK+As8JmNRPjdb7GCgGapcHn1TCwaZefVWpfHEXbRGWyCDFL0X5rz
+L28Nit6TmXOqeg2B6VBc2DL75TmOXDIK0zDkclLlX44DCLopetr/
+-----END RSA PRIVATE KEY-----}}
       run: |
-        echo "$DEPLOY_KEY" > deploy_key
-        chmod 600 deploy_key
-        scp -i deploy_key -r ./build/* user@your_server_ip:/path/to/nginx/html
+        echo "${SSH_KEY}" > ssh_key
+        chmod 600 ssh_key
+        rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" build/ $USERNAME@$HOST:/var/www/html
 
-    - name: Restart Nginx
-      env:
-        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-      run: |
-        ssh -i deploy_key user@your_server_ip 'sudo systemctl restart nginx'
