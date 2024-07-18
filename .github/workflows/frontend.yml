@@ -19,20 +19,19 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: sudo npm install
+        run: npm install
 
       - name: Build the project
         run: |
           cd client
           VITE_APP_API=https://api.greenbackclaims.com/ npm run build
           ls
-         
+
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
 
       - name: Deploy to EC2
-        env:
-          PRIVATE_KEY: ${{ secrets.SSH }}
         run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-          scp -o StrictHostKeyChecking=no -i private_key -r client/dist/* ec2-user@18.204.42.116:/var/www/html
+    
+          sshpass -p "12345" scp -o StrictHostKeyChecking=no -r client/dist/* ec2-user@18.204.42.116:/var/www/html
           echo "Deployment completed successfully!"
-
