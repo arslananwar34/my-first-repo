@@ -33,6 +33,6 @@ jobs:
           PRIVATE_KEY: ${{ secrets.SSH }}
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-          scp -o StrictHostKeyChecking=no -i private_key -r client/dist/* ubuntu@54.224.199.167:/var/www/Greenback-Claims-main/
+          scp -o StrictHostKeyChecking=no -i private_key -r client/dist/* ec2-user@18.204.42.116:/var/www/html
           echo "Deployment completed successfully!"
 
